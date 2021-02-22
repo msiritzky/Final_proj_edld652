@@ -7,8 +7,19 @@ output:
 ---
 
 ```{r setup, include=FALSE}
+#install.packages("mapcan")
 library(flexdashboard)
+library(here)
+library(readxl)
+library(mapcan)
+library(tidyverse)
 ```
+
+``` {r prep}
+composition_data <- read_excel(here("data", "class_size_composition.xlsx"))
+
+```
+
 
 Page One
 ===============================
@@ -19,12 +30,23 @@ Column {data-width=650}
 ### Chart A
 
 ```{r}
-
-library(tidyverse)
-mtcars %>% 
-  ggplot(aes(wt, mpg, col=as_factor(cyl))) +
-  geom_point() +
-  facet_grid(~cyl)
+BC_data <- mapcan::census_pop2016 %>% 
+  select(population_2016,
+         pr_english,
+         population_density_2016,
+         born_outside_canada,
+         census_division_name) %>% 
+  filter(pr_english == "British Columbia")
+  
+map_pop <- BC_data %>%   
+  mapcan(boundaries = census,
+          type = standard,
+          province = BC) %>%
+  ggplot(aes(x = long, y = lat, group = group, fill = census_division_name)) +
+  geom_polygon() +
+  coord_fixed() +
+  theme_mapcan()
+map_pop
 
 ```
 
