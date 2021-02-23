@@ -16,7 +16,16 @@ library(tidyverse)
 ```
 
 ``` {r prep}
-composition_data <- read_excel(here("data", "class_size_composition.xlsx"))
+composition_data <- read_excel(here("data", "class_size_composition.xlsx")) %>% 
+  filter(DATA_LEVEL == "DISTRICT LEVEL",
+         GRADE_GROUP == "All Grades")
+
+districting <- read_excel(here("data", "DataVizfinal_names.xlsx")) %>% 
+  select(SD,
+         DISTRICT_NAME,
+         riding_name_english)
+
+combinednames <- full_join(composition_data, districting, by = "DISTRICT_NAME") 
 
 ```
 
@@ -29,24 +38,30 @@ Column {data-width=650}
 
 ### Chart A
 
-```{r}
+```{r setMap}
 BC_data <- mapcan::census_pop2016 %>% 
   select(population_2016,
          pr_english,
          population_density_2016,
          born_outside_canada,
          census_division_name) %>% 
-  filter(pr_english == "British Columbia")
-  
-map_pop <- BC_data %>%   
-  mapcan(boundaries = census,
+  filter(pr_english == "British Columbia") %>% 
+    mapcan(boundaries = ridings,
           type = standard,
-          province = BC) %>%
-  ggplot(aes(x = long, y = lat, group = group, fill = census_division_name)) +
+          province = BC)
+
+IEPex1 <- combinednames %>% 
+  filter(SCHOOL_YEAR == "2019/2020") %>% 
+  select(NUMBER_CLASSES_0_IEP,
+         NUMBER_CLASSES_1_ELL,
+         riding_name_english) %>% 
+  drop_na() %>% 
+  full_join(BC_data)
+
+ggplot(IEPex1, aes(x = long, y = lat, group = group, fill = NUMBER_CLASSES_1_ELL)) +
   geom_polygon() +
   coord_fixed() +
   theme_mapcan()
-map_pop
 
 ```
 
