@@ -51,12 +51,13 @@ BC_data <- mapcan::census_pop2016 %>%
           province = BC)
 
 IEPex1 <- combinednames %>% 
-  filter(SCHOOL_YEAR == "2019/2020") %>% 
+   filter(SCHOOL_YEAR == "2019/2020") %>% 
   select(NUMBER_CLASSES_0_IEP,
          NUMBER_CLASSES_1_ELL,
          riding_name_english) %>% 
-  drop_na() %>% 
-  full_join(BC_data)
+  group_by(riding_name_english) %>% 
+  summarise(NUMBER_CLASSES_1_ELL = sum(NUMBER_CLASSES_1_ELL)) %>% 
+  full_join(BC_data, by = "riding_name_english")
 
 ggplot(IEPex1, aes(x = long, y = lat, group = group, fill = NUMBER_CLASSES_1_ELL)) +
   geom_polygon() +
