@@ -1,5 +1,6 @@
 ---
 title: "Final Project"
+runtime: shiny
 output: 
   flexdashboard::flex_dashboard:
     orientation: columns
@@ -7,13 +8,16 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-#install.packages("mapcan")
+# install.packages("mapcan")
+# you will probably need to install this package is specific to choropleths for Canada
 library(flexdashboard)
 library(here)
 library(readxl)
 library(mapcan)
 library(tidyverse)
 library(janitor)
+library(shiny)
+library(plotly)
 ```
 
 ``` {r prep}
@@ -32,7 +36,7 @@ districting <- read_excel(here("data", "DataVizfinal_names.xlsx")) %>%
 ```
 
 
-Page One
+Individualized Education Programs in BC
 ===============================
 
 Column {data-width=650}
@@ -61,14 +65,17 @@ IEPex1 <- districting %>%
   drop_na() %>% 
   full_join(BC_data, by = "riding_code")
 
-ggplot(IEPex1, aes(x = long, y = lat, group = group, fill = NUMBER_CLASSES_0_IEP)) +
+IEP <- ggplot(IEPex1, aes(x = long, y = lat, group = group, fill = NUMBER_CLASSES_0_IEP)) +
   geom_polygon() +
   coord_fixed() +
   theme_mapcan()
 
+# plotly::ggplotly(IEP)
+renderPlotly(IEP)
+
 ```
 
-Page Two
+English Learners in BC
 =============================
 
 Column {data-width=350}
@@ -76,8 +83,23 @@ Column {data-width=350}
 
 ### Chart B
 
-```{r}
+```{r ELexample}
 
+ELex1 <- districting %>% 
+   filter(SCHOOL_YEAR == "2019/2020") %>% 
+  select(NUMBER_CLASSES_1_ELL,
+         riding_code) %>% 
+  group_by(riding_code) %>% 
+  summarise(NUMBER_CLASSES_1_ELL = sum(NUMBER_CLASSES_1_ELL)) %>% 
+  drop_na() %>% 
+  full_join(BC_data, by = "riding_code")
+
+EL <- ggplot(ELex1, aes(x = long, y = lat, group = group, fill = NUMBER_CLASSES_1_ELL)) +
+  geom_polygon() +
+  coord_fixed() +
+  theme_mapcan()
+
+renderPlotly(EL)
 ```
 
 ### Chart C
