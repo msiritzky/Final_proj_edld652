@@ -18,6 +18,7 @@ library(tidyverse)
 library(janitor)
 library(shiny)
 library(plotly)
+library(stringr)
 ```
 
 ``` {r prep}
@@ -33,6 +34,8 @@ districting <- read_excel(here("data", "DataVizfinal_names.xlsx")) %>%
   full_join(composition_data, by = "DISTRICT_NAME") %>% 
   rename(riding_code = Code)
 
+districting$SCHOOL_YEAR <- str_sub(districting$SCHOOL_YEAR, 6)
+
 ```
 
 
@@ -42,7 +45,7 @@ Individualized Education Programs in BC
 Column {data-width=650}
 -----------------------------------------------------------------------
 
-### Chart A
+### Number of K-12 Classes with at least Three Students with IEPs by District in BC
 
 ```{r setMap}
 BC_data <- mapcan::census_pop2016 %>% 
@@ -57,21 +60,24 @@ BC_data <- mapcan::census_pop2016 %>%
           province = BC)
 
 IEPex1 <- districting %>% 
-   filter(SCHOOL_YEAR == "2019/2020") %>% 
+  filter(SCHOOL_YEAR == "2020") %>% 
   select(NUMBER_CLASSES_0_IEP,
          riding_code) %>% 
   group_by(riding_code) %>% 
   summarise(NUMBER_CLASSES_0_IEP = sum(NUMBER_CLASSES_0_IEP)) %>% 
   drop_na() %>% 
-  full_join(BC_data, by = "riding_code")
+  full_join(BC_data, by = "riding_code") %>% 
+  rename("+3 IEPs" = NUMBER_CLASSES_0_IEP)
 
-IEP <- ggplot(IEPex1, aes(x = long, y = lat, group = group, fill = NUMBER_CLASSES_0_IEP)) +
+IEP <- ggplot(IEPex1, aes(x = long, y = lat, group = group, fill = `+3 IEPs`)) +
   geom_polygon() +
   coord_fixed() +
-  theme_mapcan()
+  theme_mapcan() +
+  # labs(title = "") +
+  scale_fill_continuous(name = "Total Classes with >=3 Students with IEPs")
 
-# plotly::ggplotly(IEP)
-renderPlotly(IEP)
+plotly::ggplotly(IEP)
+# renderPlotly(IEP)
 
 ```
 
@@ -81,30 +87,58 @@ English Learners in BC
 Column {data-width=350}
 -----------------------------------------------------------------------
 
-### Chart B
+### Number of K-12 Classes with at least One Student Designated as an English Learner by District in BC
 
 ```{r ELexample}
 
 ELex1 <- districting %>% 
-   filter(SCHOOL_YEAR == "2019/2020") %>% 
+  filter(SCHOOL_YEAR == "2020") %>% 
   select(NUMBER_CLASSES_1_ELL,
          riding_code) %>% 
   group_by(riding_code) %>% 
   summarise(NUMBER_CLASSES_1_ELL = sum(NUMBER_CLASSES_1_ELL)) %>% 
   drop_na() %>% 
-  full_join(BC_data, by = "riding_code")
+  full_join(BC_data, by = "riding_code") %>% 
+  rename("+1 ELs" = NUMBER_CLASSES_1_ELL)
 
-EL <- ggplot(ELex1, aes(x = long, y = lat, group = group, fill = NUMBER_CLASSES_1_ELL)) +
+EL <- ggplot(ELex1, aes(x = long, y = lat, group = group, fill = `+1 ELs`)) +
   geom_polygon() +
   coord_fixed() +
-  theme_mapcan()
+  theme_mapcan() +
+  scale_fill_continuous(name = "Total Classes with >1 Student Learning English")
 
-renderPlotly(EL)
+# renderPlotly(EL)
+plotly::ggplotly(EL)
+
+
 ```
 
-### Chart C
 
-```{r}
+
+EL Prevalence in Classrooms over Time
+=============================
+
+Column {data-width=350}
+-----------------------------------------------------------------------
+
+### Longitudinal
+
+```{r EL_time}
+
+# Longitudinal <- districting
+# Longitudinal$SCHOOL_YEAR <- str_sub(Longitudinal$SCHOOL_YEAR, 6)
+Plot_Longitudinal <- districting %>% 
+  mutate(SCHOOL_YEAR = as.numeric(SCHOOL_YEAR),
+          totalELs = NUMBER_CLASSES_1_ELL+
+           NUMBER_CLASSES_2_ELL +
+           NUMBER_CLASSES_3_ELL +
+           NUMBER_CLASSES_4_ELL +
+           NUMBER_CLASSES_5_ELL)
+
+ggplot(Plot_Longitudinal, aes(SCHOOL_YEAR, totalELs))+
+  geom_line(aes(group = DISTRICT_NAME),
+            color = "gray75") +
+  theme_minimal()
 
 ```
 
