@@ -5,6 +5,7 @@ output:
   flexdashboard::flex_dashboard:
     orientation: columns
     vertical_layout: fill
+    source: https://github.com/dwfainstein/Final_proj_edld652
 ---
 
 ```{r setup, include=FALSE}
@@ -41,11 +42,12 @@ districting$SCHOOL_YEAR <- str_sub(districting$SCHOOL_YEAR, 6)
 
 Individualized Education Programs in BC
 ===============================
-
-Column {data-width=650}
------------------------------------------------------------------------
-
+Column {data-width=350}
+----------------------
 ### Number of K-12 Classes with at least Three Students with IEPs by District in BC
+
+This is an interactive figure which indicates the amount of classrooms in each district that are composed of at least three students with individualized education plans. This is important because three IEPs in one classroom is the minimum threshold for additional supports to be put in place for classroom teachers in supporting students with accommodations and modifications. Future iterations of this figure may demonstrate
+this relationship over time for the province of BC.
 
 ```{r setMap}
 BC_data <- mapcan::census_pop2016 %>% 
@@ -61,13 +63,20 @@ BC_data <- mapcan::census_pop2016 %>%
 
 IEPex1 <- districting %>% 
   filter(SCHOOL_YEAR == "2020") %>% 
-  select(NUMBER_CLASSES_0_IEP,
+  select( NUMBER_CLASSES_3_IEP,
+          NUMBER_CLASSES_4_IEP,
+          NUMBER_CLASSES_5_IEP,
+          NUMBER_CLASSES_6_IEP,
+          NUMBER_CLASSES_7_PLUS_IEP,
          riding_code) %>% 
   group_by(riding_code) %>% 
-  summarise(NUMBER_CLASSES_0_IEP = sum(NUMBER_CLASSES_0_IEP)) %>% 
+  summarise(`+3 IEPs` = sum(NUMBER_CLASSES_3_IEP,
+                            NUMBER_CLASSES_4_IEP,
+                            NUMBER_CLASSES_5_IEP,
+                            NUMBER_CLASSES_6_IEP,
+                            NUMBER_CLASSES_7_PLUS_IEP)) %>%
   drop_na() %>% 
-  full_join(BC_data, by = "riding_code") %>% 
-  rename("+3 IEPs" = NUMBER_CLASSES_0_IEP)
+  full_join(BC_data, by = "riding_code")
 
 IEP <- ggplot(IEPex1, aes(x = long, y = lat, group = group, fill = `+3 IEPs`)) +
   geom_polygon() +
@@ -76,8 +85,8 @@ IEP <- ggplot(IEPex1, aes(x = long, y = lat, group = group, fill = `+3 IEPs`)) +
   # labs(title = "") +
   scale_fill_continuous(name = "Total Classes with >=3 Students with IEPs")
 
-plotly::ggplotly(IEP)
-# renderPlotly(IEP)
+# plotly::ggplotly(IEP)
+renderPlotly(IEP)
 
 ```
 
@@ -89,17 +98,31 @@ Column {data-width=350}
 
 ### Number of K-12 Classes with at least One Student Designated as an English Learner by District in BC
 
+This is another interactive figure which indicates the amount of classrooms in each district that are composed of at least one student who is identified as an English Learner. This is important because the combination of English Learners and students with individualized needs frequently triggers additional supports to be put in place for classroom teachers to make accommodations and modifications for all students who may require additional support.. Future iterations of this figure may demonstrate
+this relationship over time for the province of BC.
+
 ```{r ELexample}
 
 ELex1 <- districting %>% 
   filter(SCHOOL_YEAR == "2020") %>% 
   select(NUMBER_CLASSES_1_ELL,
-         riding_code) %>% 
-  group_by(riding_code) %>% 
-  summarise(NUMBER_CLASSES_1_ELL = sum(NUMBER_CLASSES_1_ELL)) %>% 
-  drop_na() %>% 
-  full_join(BC_data, by = "riding_code") %>% 
-  rename("+1 ELs" = NUMBER_CLASSES_1_ELL)
+         NUMBER_CLASSES_2_ELL,
+         NUMBER_CLASSES_3_ELL,
+         NUMBER_CLASSES_4_ELL,
+         NUMBER_CLASSES_5_ELL,
+         NUMBER_CLASSES_6_ELL,
+         NUMBER_CLASSES_7_PLUS_ELL,
+         riding_code) %>%
+  group_by(riding_code) %>%
+  summarise(`+1 ELs` = sum( NUMBER_CLASSES_1_ELL, 
+                            NUMBER_CLASSES_2_ELL,
+                            NUMBER_CLASSES_3_ELL,
+                            NUMBER_CLASSES_4_ELL,
+                            NUMBER_CLASSES_5_ELL,
+                            NUMBER_CLASSES_6_ELL,
+                            NUMBER_CLASSES_7_PLUS_ELL)) %>%
+  drop_na() %>%
+  full_join(BC_data, by = "riding_code") 
 
 EL <- ggplot(ELex1, aes(x = long, y = lat, group = group, fill = `+1 ELs`)) +
   geom_polygon() +
@@ -107,8 +130,8 @@ EL <- ggplot(ELex1, aes(x = long, y = lat, group = group, fill = `+1 ELs`)) +
   theme_mapcan() +
   scale_fill_continuous(name = "Total Classes with >1 Student Learning English")
 
-# renderPlotly(EL)
-plotly::ggplotly(EL)
+renderPlotly(EL)
+# plotly::ggplotly(EL)
 
 
 ```
@@ -123,22 +146,39 @@ Column {data-width=350}
 
 ### Longitudinal
 
+I would like to make this an interactive figure by populating the district name & number of students when your mouse rolls over the spot on the figure. I've highlighted three examples, similar to our lab 3, as an example. \n\n\n
+
 ```{r EL_time}
 
-# Longitudinal <- districting
-# Longitudinal$SCHOOL_YEAR <- str_sub(Longitudinal$SCHOOL_YEAR, 6)
 Plot_Longitudinal <- districting %>% 
   mutate(SCHOOL_YEAR = as.numeric(SCHOOL_YEAR),
           totalELs = NUMBER_CLASSES_1_ELL+
            NUMBER_CLASSES_2_ELL +
            NUMBER_CLASSES_3_ELL +
            NUMBER_CLASSES_4_ELL +
-           NUMBER_CLASSES_5_ELL)
+           NUMBER_CLASSES_5_ELL +
+           NUMBER_CLASSES_6_ELL +
+           NUMBER_CLASSES_7_PLUS_ELL)
 
 ggplot(Plot_Longitudinal, aes(SCHOOL_YEAR, totalELs))+
   geom_line(aes(group = DISTRICT_NAME),
             color = "gray75") +
-  theme_minimal()
+  geom_line(data = filter(Plot_Longitudinal,
+      DISTRICT_NAME == "Surrey"),
+           color = "#60D838") +
+  geom_line(data = filter(Plot_Longitudinal,
+      DISTRICT_NAME == "Vancouver"),
+      color = "#ff00e6") +
+  geom_line(data = filter(Plot_Longitudinal,
+      DISTRICT_NAME == "Greater Victoria"),
+           color = "#0004ff") +
+  theme_minimal() +
+  labs(title = "Classrooms with +1 ELs by School District") +
+       xlab("School Year") +
+       ylab("Number of Clasrooms with +1 EL Student") +
+    annotate(geom = "text", x = 2015, y = 5500, label = "Surrey", hjust = "left") +
+    annotate(geom = "text", x = 2008, y = 5650, label = "Vancouver", hjust = "left") +
+    annotate(geom = "text", x = 2012, y = 1311, label = "Victoria", hjust = "left")
 
 ```
 
