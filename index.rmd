@@ -88,6 +88,11 @@ IEP <- ggplot(IEPex1, aes(x = long, y = lat, group = group, fill = `+3 IEPs`)) +
 # plotly::ggplotly(IEP)
 renderPlotly(IEP)
 
+# Comments from Meg: This is a super interesting visualization! It looks really elegant and clearly depicts what you're trying to convey. I've never used the mapcan package, so I appreciate the introduction to this new tool! 
+# Meg: I'm actually curious - specifically for this visualization, is there a reason you selected the column born_outside_canada? I'm not really sure where it went in the code, but I was wondering if there was some theoretical reason you included it. Not at all a critique of your viz, I was just wondering.
+# I'm impressed with how concise you were able to keep your code and come up with such a rich visualization! This is definitely a strength I'm noticing.
+# The only things I might suggest for this viz would be to use a more colorblind-friendly scale and label the province as BC. I also wonder whether there are any specific districts you want to highlight, which might be good candidates for labeling.
+
 ```
 
 English Learners in BC
@@ -98,8 +103,7 @@ Column {data-width=350}
 
 ### Number of K-12 Classes with at least One Student Designated as an English Learner by District in BC
 
-This is another interactive figure which indicates the amount of classrooms in each district that are composed of at least one student who is identified as an English Learner. This is important because the combination of English Learners and students with individualized needs frequently triggers additional supports to be put in place for classroom teachers to make accommodations and modifications for all students who may require additional support.. Future iterations of this figure may demonstrate
-this relationship over time for the province of BC.
+This is another interactive figure which indicates the amount of classrooms in each district that are composed of at least one student who is identified as an English Learner. This is important because the combination of English Learners and students with individualized needs frequently triggers additional supports to be put in place for classroom teachers to make accommodations and modifications for all students who may require additional support. Future iterations of this figure may demonstrate this relationship over time for the province of BC.
 
 ```{r ELexample}
 
@@ -133,7 +137,9 @@ EL <- ggplot(ELex1, aes(x = long, y = lat, group = group, fill = `+1 ELs`)) +
 renderPlotly(EL)
 # plotly::ggplotly(EL)
 
-
+# Meg: Again, I'm impressed with the clarity/brevity of your code and the simplicity of your figure, which I think does a great job of conveying what you're looking to say!
+# Meg: I wonder, given the theoretical relationship you want to draw between this map and the previous one, if it would make sense to include visualizations 1 and 2 side-by-side here. Perhaps there's even a way to highlight the combination of classrooms with ELs and IEPs in a third map to show the overall concentration of need for additional classroom support?
+# Meg: Okay this is more of a theoretical question/suggestion. I get that what you're measuring is the total number of classes in each district with at least one student learning English, but I find myself wondering how many students are ELs in each of those classrooms. I would imagine that there's a big difference in support needed for one EL as compared to 10. I see that you've summarized this as '+1 EL' but I wonder if it would be possible or perhaps valuable to actually visualize the concentration of ELs in classrooms as this kind of heatmap as well. (This suggestion also basically applies to figure 1).
 ```
 
 
@@ -179,6 +185,11 @@ ggplot(Plot_Longitudinal, aes(SCHOOL_YEAR, totalELs))+
     annotate(geom = "text", x = 2015, y = 5500, label = "Surrey", hjust = "left") +
     annotate(geom = "text", x = 2008, y = 5650, label = "Vancouver", hjust = "left") +
     annotate(geom = "text", x = 2012, y = 1311, label = "Victoria", hjust = "left")
+
+# Meg: I love the way you highlighted and labeled the three districts you're interested in highlighting. This is a huge strength of this figure - it's immediately clear and compelling. 
+# Meg: The only thing I'd advise playing around with here is color; I'd again recommend trying a colorblind friendly color palette (and I'd also emphasize that because Victoria is surrounded by grey lines, you may want to check how this looks in black and white to make sure it doesn't blend in). Also if you're interested, I used this code in Lab 3 to make the grey lines even less visible, and I really liked it:
+# gghighlight(region == "Northeast",
+#             unhighlighted_params = list(alpha = 0.3))
 
 ```
 
